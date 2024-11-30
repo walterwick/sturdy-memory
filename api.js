@@ -1,11 +1,11 @@
 import express from 'express';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
 import fetch from 'node-fetch';
 import cors from 'cors';
-import { WebSocketServer } from 'ws';
 
 const app = express();
 const PORT = 3000;
-const WSS_PORT = 3001;
 
 // CORS'u etkinleştir
 app.use(cors());
@@ -13,9 +13,12 @@ app.use(cors());
 // Hedef URL'nin temeli
 const baseUrl = 'https://livetiming.formula1.com';
 
-// WebSocket sunucusunu oluştur
-const wss = new WebSocketServer({ port: WSS_PORT });
-console.log(`WebSocket sunucusu ws://localhost:${WSS_PORT} adresinde çalışıyor`);
+// HTTP sunucusunu oluştur
+const server = createServer(app);
+
+// WebSocket sunucusunu oluştur ve HTTP sunucusuna bağla
+const wss = new WebSocketServer({ server });
+console.log(`WebSocket ve HTTP sunucusu http://localhost:${PORT} adresinde çalışıyor`);
 
 // WebSocket bağlantılarını dinle
 wss.on('connection', (ws) => {
@@ -60,11 +63,12 @@ wss.on('connection', (ws) => {
     });
 });
 
-// HTTP sunucusu
+// HTTP rotası
 app.get('/', (req, res) => {
-    res.send('WebSocket sunucusu için ws://localhost:3001 adresine bağlanın');
+    res.send('WebSocket sunucusu için ws://localhost:3000 adresine bağlanın');
 });
 
-app.listen(PORT, () => {
-    console.log(`HTTP sunucusu http://localhost:${PORT} adresinde çalışıyor`);
+// Sunucuyu başlat
+server.listen(PORT, () => {
+    console.log(`HTTP ve WebSocket sunucusu http://localhost:${PORT} adresinde çalışıyor`);
 });
